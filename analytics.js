@@ -2,7 +2,7 @@
  *
  * Nothing is sent to Google until the visitor presses Accept.
  * Usage on every page, just before </body>:
- *   <script src="/analytics.js" data-ga-id="G-XXXXXXXXXX" defer></script>
+ *   <script src="/Platinocube-test/analytics.js" data-ga-id="G-XXXXXXXXXX" defer></script>
  *
  * Events (only after consent):
  *   click_whatsapp  any link to wa.me or api.whatsapp.com
@@ -20,8 +20,8 @@
   var lang = (document.documentElement.lang || 'en').slice(0, 2) === 'ar' ? 'ar' : 'en';
 
   var TEXT = {
-    en: { msg: 'We use cookies to understand how the site is used.', more: 'Privacy Policy', href: '/privacy/', accept: 'Accept', decline: 'Decline', label: 'Cookie notice' },
-    ar: { msg: 'نستخدم ملفات تعريف الارتباط لفهم كيفية استخدام الموقع.', more: 'سياسة الخصوصية', href: '/ar/privacy/', accept: 'موافق', decline: 'رفض', label: 'إشعار ملفات تعريف الارتباط' }
+    en: { msg: 'We use cookies to understand how the site is used.', more: 'Privacy Policy', href: '/Platinocube-test/privacy/', accept: 'Accept', decline: 'Decline', label: 'Cookie notice' },
+    ar: { msg: 'نستخدم ملفات تعريف الارتباط لفهم كيفية استخدام الموقع.', more: 'سياسة الخصوصية', href: '/Platinocube-test/ar/privacy/', accept: 'موافق', decline: 'رفض', label: 'إشعار ملفات تعريف الارتباط' }
   }[lang];
 
   // Consent Mode v2: everything denied by default.
