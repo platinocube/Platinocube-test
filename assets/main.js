@@ -176,7 +176,6 @@
       tilt: $('[data-cube-tilt]', stage),
       scene: $('[data-cube-scene]', stage),
       copy: $('[data-hero-copy]', stage),
-      end: $('[data-cube-end]', stage),
       hint: $('.scroll-hint', stage),
       zone: $('.cube-zone', stage),
       quip: $('[data-quip]', stage),
@@ -238,7 +237,7 @@
       // If the 3D cube is not ready in time, show the flat cube so the hero is never empty
       var giveUp = setTimeout(function () { doc.classList.remove('gl-pending'); }, 7000);
       load3d().then(function (m) {
-        return m.initHeroCube({ pin: cube.pin, anchor: cube.scene, endAnchor: $('[data-end-mark]', stage), faces: faceData, rtl: rtl });
+        return m.initHeroCube({ pin: cube.pin, anchor: cube.scene, endAnchor: cube.scene, faces: faceData, rtl: rtl });
       }).then(function (api) {
         clearTimeout(giveUp);
         cube.api = api;
@@ -256,42 +255,85 @@
       doc.classList.remove('gl-pending');
     }
 
-    cube.update = function (vh) {
-      if (reduced) return;
-      var r = cube.stage.getBoundingClientRect();
-      var span = r.height - vh;
-      if (span <= 0) return;
-      var p = clamp(-r.top / span);
-
-      // Turn through the six faces, pausing on each one
-      var f = clamp((p - 0.03) / 0.74) * 5;
-      var i = Math.min(4, Math.floor(f));
-      var t = f - i;
-      var e = smooth(clamp((t - 0.22) / 0.56));
-      var rx = lerp(K[i][0], K[i + 1][0], e);
-      var ry = lerp(K[i][1], K[i + 1][1], e);
-      if (rtl) ry = -ry;
-      cube.el.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-      cube.el.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-      setActive(e < 0.5 ? i : i + 1);
-      var q3 = clamp((p - 0.78) / 0.16);
-      if (cube.api) cube.api.set({ rx: -rx, ry: ry, q: q3 });
-
-      // The ending: the cube opens up into "Your brand."
-      var fade = clamp((p - 0.74) / 0.08);
-      cube.copy.style.opacity = (1 - fade).toFixed(3);
-      cube.copy.style.transform = 'translateY(' + (-40 * fade).toFixed(1) + 'px)';
-      var q = clamp((p - 0.8) / 0.12);
-      var s = cube.scene.offsetWidth;
-      cube.el.style.setProperty('--open', (q * s * 0.9).toFixed(1) + 'px');
-      cube.el.style.setProperty('--fo', (1 - smooth(q)).toFixed(3));
-      cube.zone.style.opacity = (1 - clamp((q - 0.5) / 0.5)).toFixed(3);
-      var endIn = clamp((q - 0.45) / 0.5);
-      cube.end.style.opacity = endIn.toFixed(3);
-      cube.end.style.transform = 'scale(' + (0.94 + 0.06 * endIn).toFixed(3) + ')';
-      cube.end.classList.toggle('on', endIn > 0.5);
-      if (cube.hint) cube.hint.style.opacity = p > 0.02 ? '0' : '1';
+    // ---- Auto-turning cube: turns by itself, pauses on hover, cq_drag/swipe to spin, click a name to jump ----
+    var cq_pos = 0;                 // face counter (keeps growing so turns always cq_go forward smoothly)
+    var cq_drag = 0;                // extra degrees while cq_dragging
+    var cq_cur = { rx: 0, ry: 0 };
+    var cq_paused = false, cq_dragging = false, cq_onScreen = true, cq_lastTurn = performance.now();
+    var cq_HOLD = 3200;             // ms on each face
+    var cq_target = function () {
+      var i = ((cq_pos % 6) + 6) % 6, lap = Math.floor(cq_pos / 6);
+      var rx = K[i][0] - 360 * lap, ry = K[i][1] - 360 * lap;
+      return { rx: rx, ry: (ry + cq_drag) * (rtl ? -1 : 1), i: i };
     };
+    var cq_go = function (n) { cq_pos = n; cq_lastTurn = performance.now(); setActive(cq_target().i); };
+    cube.update = function () {};
+    if (!reduced) {
+      var cq_last = performance.now();
+      var cq_tick = function (now) {
+        var dt = Math.min(0.05, (now - cq_last) / 1000);
+        cq_last = now;
+        if (cq_onScreen && !cq_paused && !cq_dragging && !document.hidden && now - cq_lastTurn > cq_HOLD) cq_go(cq_pos + 1);
+        var tg = cq_target();
+        var k = 1 - Math.exp(-dt * (cq_dragging ? 14 : 4.2));
+        cq_cur.rx += (tg.rx - cq_cur.rx) * k;
+        cq_cur.ry += (tg.ry - cq_cur.ry) * k;
+        cube.el.style.setProperty('--rx', cq_cur.rx.toFixed(2) + 'deg');
+        cube.el.style.setProperty('--ry', cq_cur.ry.toFixed(2) + 'deg');
+        if (cube.api) cube.api.set({ rx: -cq_cur.rx, ry: cq_cur.ry, q: 0 });
+        requestAnimationFrame(cq_tick);
+      };
+      requestAnimationFrame(cq_tick);
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (en) { cq_onScreen = en[0].isIntersecting; if (cq_onScreen) cq_lastTurn = performance.now(); }).observe(cube.scene);
+      }
+      // hover pauses (desktop)
+      cube.scene.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') cq_paused = true; });
+      cube.scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { cq_paused = false; cq_lastTurn = performance.now() - cq_HOLD / 2; } });
+      // cq_drag / swipe to spin
+      var cq_startX = 0, cq_startY = 0, cq_moved = false;
+      cube.scene.style.touchAction = 'pan-y';
+      cube.scene.addEventListener('pointerdown', function (e) {
+        cq_dragging = true; cq_moved = false; cq_startX = e.clientX; cq_startY = e.clientY;
+        try { cube.scene.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      cube.scene.addEventListener('pointermove', function (e) {
+        if (!cq_dragging) return;
+        var dx = e.clientX - cq_startX;
+        if (Math.abs(dx) > 6) cq_moved = true;
+        cq_drag = dx * 0.45 * (rtl ? -1 : 1);
+      });
+      var cq_endDrag = function (e) {
+        if (!cq_dragging) return;
+        cq_dragging = false;
+        var dx = e.clientX - cq_startX;
+        cq_drag = 0;
+        if (Math.abs(dx) > 40) cq_go(cq_pos + ((dx < 0) !== rtl ? 1 : -1));
+        else cq_lastTurn = performance.now();
+      };
+      cube.scene.addEventListener('pointerup', cq_endDrag);
+      cube.scene.addEventListener('pointercancel', cq_endDrag);
+      cube.scene.addEventListener('click', function (e) { if (cq_moved) { e.stopImmediatePropagation(); cq_moved = false; } }, true);
+      // keyboard: arrows turn the cube
+      cube.scene.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); cq_go(cq_pos + ((e.key === 'ArrowRight') !== rtl ? 1 : -1)); }
+      });
+    }
+    // service names under the cube jump to that face
+    $$('[data-face]', stage).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var j = +b.getAttribute('data-face'), i = ((cq_pos % 6) + 6) % 6;
+        cq_go(cq_pos - i + j);
+        showQuip(true);
+        setTimeout(function () { if (!cube.scene.matches(':hover')) showQuip(false); }, 2200);
+      });
+    });
+    // scroll-down button
+    var cq_nextBtn = $('[data-scroll-next]', stage);
+    if (cq_nextBtn) cq_nextBtn.addEventListener('click', function () {
+      var nxt = stage.nextElementSibling;
+      if (nxt) window.scrollTo({ top: nxt.getBoundingClientRect().top + window.scrollY - 70, behavior: reduced ? 'auto' : 'smooth' });
+    });
   }
 
   /* ---------- Plan, Create, Grow line ---------- */

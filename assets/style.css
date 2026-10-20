@@ -1434,3 +1434,29 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 .details .hours-dd { display: grid; gap: 2px; }
 .details .hours-dd span { white-space: nowrap; }
 .details .hours-time { color: var(--muted); font-size: .95em; font-variant-numeric: tabular-nums; }
+
+/* ---------- Hero without scroll-lock: one screen, self-turning cube ---------- */
+.js .hero { height: auto; }
+.js .hero-pin { position: relative; height: auto; min-height: 100vh; min-height: 100svh; padding-block: calc(var(--header) + 24px) 96px; }
+.hero-copy { opacity: 1 !important; transform: none !important; }
+.cube-scene { cursor: grab; touch-action: pan-y; user-select: none; }
+.cube-scene:active { cursor: grabbing; }
+.cube-index li { display: contents; }
+.cube-index button { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; padding: 4px 6px; border: 0; border-radius: 8px; background: none; font: inherit; color: rgba(160, 165, 173, .7); cursor: pointer; transition: color .3s, background-color .3s; }
+.cube-index button:hover { color: #fff; background: rgba(216, 216, 216, .07); }
+.cube-index li.on button { color: #fff; }
+.cube-index li.on button span { color: var(--red); }
+.cube-index button span { font-size: max(12px, .72rem); letter-spacing: .1em; }
+.scroll-hint { border: 0; background: none; cursor: pointer; color: var(--silver); font: inherit; font-size: .72rem; padding: 8px 14px; border-radius: 14px; opacity: 1 !important; transition: color .25s; }
+.scroll-hint:hover { color: #fff; }
+.scroll-hint i.sh-mouse { position: relative; display: block; width: 22px; height: 34px; border: 1.6px solid currentColor; border-radius: 12px; background: none; animation: none; transform: none; }
+.scroll-hint i.sh-mouse b { position: absolute; left: 50%; top: 6px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: currentColor; animation: wheel 1.8s ease-in-out infinite; }
+@keyframes wheel { 0% { opacity: 0; transform: translateY(-2px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(10px); } }
+@media (max-width: 860px) {
+  .js .hero { height: auto; }
+  .js .scroll-hint { display: flex; bottom: 14px; }
+  .cube-index { display: flex; gap: 4px 10px; max-width: 360px; font-size: .8rem; }
+  .js .hero-pin { padding-bottom: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .scroll-hint i.sh-mouse b { animation: none; } }
+@media (max-width: 860px) { .js .scroll-hint { display: none; } }
