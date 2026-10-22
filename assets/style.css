@@ -1464,3 +1464,4 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 /* Hero without buttons; more room above the cube on phones */
 .hero-copy .trust { margin-top: 26px; }
 @media (max-width: 860px) { .cube-zone { margin-top: 56px; } }
+@media (max-width: 860px) { .cube-zone { margin-top: calc(var(--s) * .42 + 40px); gap: calc(var(--s) * .34 + 26px); } .js .hero-pin { padding-bottom: 64px; } }
