@@ -1460,3 +1460,7 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 }
 @media (prefers-reduced-motion: reduce) { .scroll-hint i.sh-mouse b { animation: none; } }
 @media (max-width: 860px) { .js .scroll-hint { display: none; } }
+
+/* Hero without buttons; more room above the cube on phones */
+.hero-copy .trust { margin-top: 26px; }
+@media (max-width: 860px) { .cube-zone { margin-top: 56px; } }
