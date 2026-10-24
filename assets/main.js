@@ -270,17 +270,32 @@
     cube.update = function () {};
     if (!reduced) {
       var cq_last = performance.now();
+      var cq_lastQ = -1;
+      var cq_index = $('[data-cube-index]', stage);
+      var cq_brand = doc.classList.contains('gl-pending') || hasWebGL() ? $('[data-cube-brand]', stage) : null;
       var cq_tick = function (now) {
         var dt = Math.min(0.05, (now - cq_last) / 1000);
         cq_last = now;
-        if (cq_onScreen && !cq_paused && !cq_dragging && !document.hidden && now - cq_lastTurn > cq_HOLD) cq_go(cq_pos + 1);
+        // scrolling past the hero turns the cube into the logo (normal page scroll, no lock)
+        var hr = stage.getBoundingClientRect();
+        var cq_q = clamp((-hr.top - hr.height * 0.02) / (hr.height * 0.2));
+        if (cq_q !== cq_lastQ) {
+          cq_lastQ = cq_q;
+          if (cq_index && cq_brand) cq_index.style.opacity = (1 - clamp(cq_q * 2.5)).toFixed(3);
+          if (cq_brand) {
+            var bq = clamp((cq_q - 0.45) / 0.45);
+            cq_brand.style.opacity = bq.toFixed(3);
+            cq_brand.style.transform = 'translate(-50%,' + (12 * (1 - bq)).toFixed(1) + 'px)';
+          }
+        }
+        if (cq_q < 0.05 && cq_onScreen && !cq_paused && !cq_dragging && !document.hidden && now - cq_lastTurn > cq_HOLD) cq_go(cq_pos + 1);
         var tg = cq_target();
         var k = 1 - Math.exp(-dt * (cq_dragging ? 14 : 4.2));
         cq_cur.rx += (tg.rx - cq_cur.rx) * k;
         cq_cur.ry += (tg.ry - cq_cur.ry) * k;
         cube.el.style.setProperty('--rx', cq_cur.rx.toFixed(2) + 'deg');
         cube.el.style.setProperty('--ry', cq_cur.ry.toFixed(2) + 'deg');
-        if (cube.api) cube.api.set({ rx: -cq_cur.rx, ry: cq_cur.ry, q: 0 });
+        if (cube.api) cube.api.set({ rx: -cq_cur.rx, ry: cq_cur.ry, q: cq_q });
         requestAnimationFrame(cq_tick);
       };
       requestAnimationFrame(cq_tick);

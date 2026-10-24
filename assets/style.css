@@ -1473,3 +1473,14 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 [dir="rtl"] .hero-video { transform: scaleX(-1); }
 @media (max-width: 860px) { .hero-bg { background-image: url(../img/hero-poster-m.webp); } .hero-video { object-position: 78% 0; } }
 @media (prefers-reduced-motion: reduce) { .hero-video { display: none; } }
+
+/* Intro glow: fully inside its section, no hard cut at the bottom */
+.intro-glow { left: 50%; top: 50%; width: min(1000px, 90vw); height: 70%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(62, 95, 148, .22), rgba(62, 95, 148, .08) 55%, transparent); }
+
+/* Cube -> logo on scroll: "Your brand." appears where the service names were */
+.cube-zone { position: relative; }
+.cube-brand { position: absolute; left: 50%; bottom: -6px; margin: 0; display: grid; justify-items: center; gap: 4px; text-align: center; white-space: nowrap; opacity: 0; pointer-events: none; transform: translate(-50%, 12px); }
+.cube-brand b { font-weight: var(--display-weight); font-size: clamp(1.6rem, 2.6vw, 2.3rem); line-height: 1.15; background: linear-gradient(180deg, #fff 35%, #9BA1AB); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cube-brand span { font-family: 'Questrial', sans-serif; font-size: .9rem; color: var(--silver); letter-spacing: .02em; }
+@media (prefers-reduced-motion: reduce) { .cube-brand { display: none; } }
+.cube-brand { bottom: auto; top: calc(var(--s) + 34px); }
