@@ -1465,3 +1465,11 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 .hero-copy .trust { margin-top: 26px; }
 @media (max-width: 860px) { .cube-zone { margin-top: 56px; } }
 @media (max-width: 860px) { .cube-zone { margin-top: calc(var(--s) * .42 + 40px); gap: calc(var(--s) * .34 + 26px); } .js .hero-pin { padding-bottom: 64px; } }
+
+/* ---------- Home hero: high-res animated background video (replaces the old image) ---------- */
+.hero-bg { background-image: url(../img/hero-poster.webp); }
+.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 0; pointer-events: none; }
+/* the hero background is mirrored in Arabic; un-mirror the video so the logo watermark never reads backwards */
+[dir="rtl"] .hero-video { transform: scaleX(-1); }
+@media (max-width: 860px) { .hero-bg { background-image: url(../img/hero-poster-m.webp); } .hero-video { object-position: 78% 0; } }
+@media (prefers-reduced-motion: reduce) { .hero-video { display: none; } }
