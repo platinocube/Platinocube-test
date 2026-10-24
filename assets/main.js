@@ -237,7 +237,7 @@
       // If the 3D cube is not ready in time, show the flat cube so the hero is never empty
       var giveUp = setTimeout(function () { doc.classList.remove('gl-pending'); }, 7000);
       load3d().then(function (m) {
-        return m.initHeroCube({ pin: cube.pin, anchor: cube.scene, endAnchor: cube.scene, faces: faceData, rtl: rtl });
+        return m.initHeroCube({ pin: cube.pin, anchor: cube.scene, endAnchor: $('[data-brand-slot]') || cube.scene, endSection: $('[data-brand-reveal]'), faces: faceData, rtl: rtl });
       }).then(function (api) {
         clearTimeout(giveUp);
         cube.api = api;
@@ -272,20 +272,30 @@
       var cq_last = performance.now();
       var cq_lastQ = -1;
       var cq_index = $('[data-cube-index]', stage);
-      var cq_brand = doc.classList.contains('gl-pending') || hasWebGL() ? $('[data-cube-brand]', stage) : null;
+      var cq_slot = $('[data-brand-slot]');
+      var cq_texts = $$('[data-br-text]');
       var cq_tick = function (now) {
         var dt = Math.min(0.05, (now - cq_last) / 1000);
         cq_last = now;
-        // scrolling past the hero turns the cube into the logo (normal page scroll, no lock)
-        var hr = stage.getBoundingClientRect();
-        var cq_q = clamp((-hr.top - hr.height * 0.02) / (hr.height * 0.2));
+        // scrolling down: the cube flies out of the hero and becomes the logo in the 'Your brand' section
+        // (0 = page top, 1 = that section's logo spot sits in the middle of the screen; normal scroll, no lock)
+        var cq_q = 0;
+        if (cq_slot && doc.classList.contains('has-3d')) {
+          var vh = window.innerHeight, y = window.scrollY;
+          var hr = stage.getBoundingClientRect(), sr = cq_slot.getBoundingClientRect();
+          var s0 = hr.top + y + vh * 0.04, s1 = sr.top + sr.height / 2 + y - vh / 2;
+          cq_q = s1 > s0 ? clamp((y - s0) / (s1 - s0)) : 0;
+        }
         if (cq_q !== cq_lastQ) {
           cq_lastQ = cq_q;
-          if (cq_index && cq_brand) cq_index.style.opacity = (1 - clamp(cq_q * 2.5)).toFixed(3);
-          if (cq_brand) {
-            var bq = clamp((cq_q - 0.45) / 0.45);
-            cq_brand.style.opacity = bq.toFixed(3);
-            cq_brand.style.transform = 'translate(-50%,' + (12 * (1 - bq)).toFixed(1) + 'px)';
+          if (cq_index && cq_slot && doc.classList.contains('has-3d')) {
+            cq_index.style.opacity = (1 - clamp(cq_q * 3)).toFixed(3);
+            var bq = clamp((cq_q - 0.78) / 0.22);
+            cq_texts.forEach(function (el, i) {
+              var v = clamp(bq * 1.4 - i * 0.3);
+              el.style.opacity = v.toFixed(3);
+              el.style.transform = 'translateY(' + (14 * (1 - v)).toFixed(1) + 'px)';
+            });
           }
         }
         if (cq_q < 0.05 && cq_onScreen && !cq_paused && !cq_dragging && !document.hidden && now - cq_lastTurn > cq_HOLD) cq_go(cq_pos + 1);

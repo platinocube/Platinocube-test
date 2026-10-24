@@ -239,7 +239,7 @@ function glowTexture() {
 /* ------------------------------------------------------------------ */
 /* Home hero cube                                                       */
 /* ------------------------------------------------------------------ */
-export async function initHeroCube({ pin, anchor, endAnchor, faces, rtl }) {
+export async function initHeroCube({ pin, anchor, endAnchor, endSection, faces, rtl }) {
   const lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
   const fonts = lang === 'ar'
     ? { name: 'Cairo', nameWeight: 700, nameSize: 108, body: 'Cairo', lineSize: 50, latin: 'Questrial' }
@@ -255,7 +255,9 @@ export async function initHeroCube({ pin, anchor, endAnchor, faces, rtl }) {
   const canvas = document.createElement('canvas');
   canvas.className = 'hero-gl';
   canvas.setAttribute('aria-hidden', 'true');
-  pin.insertBefore(canvas, pin.firstChild.nextSibling);
+  // one canvas fixed to the screen, so the pieces can fly from the hero into the 'Your brand' section below
+  canvas.classList.add('hero-gl-fixed');
+  document.body.appendChild(canvas);
 
   const renderer = makeRenderer(canvas);
   const scene = new THREE.Scene();
@@ -349,33 +351,40 @@ export async function initHeroCube({ pin, anchor, endAnchor, faces, rtl }) {
   const endWorld = new THREE.Vector3();
   let cubeSize = 1, markSize = 1;
 
+  // the canvas covers the screen; anchors are read every frame because they move as the page scrolls
   function measure() {
-    const r = pin.getBoundingClientRect();
-    W = r.width; H = r.height;
+    W = window.innerWidth; H = window.innerHeight;
     renderer.setSize(W, H, false);
     camera.aspect = W / H;
     camera.updateProjectionMatrix();
     k = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z) / H;
+  }
+  function track() {
     const a = anchor.getBoundingClientRect();
-    anchorWorld.set((a.left + a.width / 2 - r.left - W / 2) * k, -(a.top + a.height / 2 - r.top - H / 2) * k, 0);
+    anchorWorld.set((a.left + a.width / 2 - W / 2) * k, -(a.top + a.height / 2 - H / 2) * k, 0);
     cubeSize = a.width * k * 0.86;
     const e = endAnchor.getBoundingClientRect();
-    endWorld.set((e.left + e.width / 2 - r.left - W / 2) * k, -(e.top + e.height / 2 - r.top - H / 2) * k, 0);
+    endWorld.set((e.left + e.width / 2 - W / 2) * k, -(e.top + e.height / 2 - H / 2) * k, 0);
     markSize = e.height * k;
   }
   measure();
+  track();
   window.addEventListener('resize', measure);
-
   let running = true;
   let last = performance.now();
   let raf = 0;
   let readyAt = 0;
+  // draw only while the hero or the 'Your brand' section is on screen; hide the canvas otherwise
+  const seen = new Map();
   const io = new IntersectionObserver((en) => {
-    const vis = en[0].isIntersecting;
+    en.forEach((x) => seen.set(x.target, x.isIntersecting));
+    const vis = [...seen.values()].some(Boolean);
+    canvas.style.visibility = vis ? '' : 'hidden';
     if (vis && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
     if (!vis) running = false;
   });
   io.observe(pin.parentElement);
+  if (endSection) io.observe(endSection);
 
   function frame(now) {
     if (!running) return;
@@ -383,7 +392,8 @@ export async function initHeroCube({ pin, anchor, endAnchor, faces, rtl }) {
     last = now;
     const t = now / 1000;
     const f = 1 - Math.exp(-dt * 7);
-    for (const key in cur) cur[key] += (target[key] - cur[key]) * f;
+    for (const key in cur) cur[key] += (target[key] - cur[key]) * (key === 'q' ? Math.min(1, f * 1.6) : f);
+    track();
 
     // First frame: reveal the canvas, then grow the cube in with a short turn
     if (!readyAt) { readyAt = now; canvas.classList.add('ready'); }

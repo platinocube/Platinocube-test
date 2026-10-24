@@ -1484,3 +1484,18 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 .cube-brand span { font-family: 'Questrial', sans-serif; font-size: .9rem; color: var(--silver); letter-spacing: .02em; }
 @media (prefers-reduced-motion: reduce) { .cube-brand { display: none; } }
 .cube-brand { bottom: auto; top: calc(var(--s) + 34px); }
+
+/* ---------- 'Your brand' section: the cube flies down and becomes the logo here ---------- */
+.hero-gl.hero-gl-fixed { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }
+.brand-reveal { position: relative; min-height: 86vh; min-height: 86svh; display: grid; place-items: center; padding-block: 90px; overflow: hidden; }
+.br-glow { position: absolute; left: 50%; top: 50%; width: min(900px, 95vw); height: 80%; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(closest-side, rgba(111, 147, 204, .2), rgba(62, 95, 148, .07) 55%, transparent); }
+.br-in { position: relative; display: grid; justify-items: center; text-align: center; }
+.br-slot { height: clamp(220px, 34vh, 340px); aspect-ratio: 1012 / 1388; margin-bottom: 34px; }
+.br-mark { width: 100%; height: 100%; filter: drop-shadow(0 20px 40px rgba(111, 147, 204, .45)); }
+.has-3d .br-mark { visibility: hidden; }
+.br-title { margin: 0; font-size: clamp(2.6rem, 6vw, 5rem); line-height: 1.1; letter-spacing: -.02em; padding-bottom: .08em;
+  background: linear-gradient(180deg, #fff 35%, #9BA1AB); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[lang="ar"] .br-title { font-weight: 700; letter-spacing: 0; line-height: 1.35; }
+.br-sub { margin: 10px 0 0; font-family: 'Questrial', sans-serif; font-size: clamp(1rem, 1.6vw, 1.25rem); color: var(--silver); }
+@media (max-width: 860px) { .brand-reveal { min-height: 76svh; padding-block: 70px; } .br-slot { height: clamp(180px, 30vh, 260px); } }
