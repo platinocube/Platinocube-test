@@ -1499,3 +1499,9 @@ button.kpi.on .kpi-ic { background: var(--light); color: var(--bg); }
 html[lang="ar"] .br-title { font-weight: 700; letter-spacing: 0; line-height: 1.35; }
 .br-sub { margin: 10px 0 0; font-family: 'Questrial', sans-serif; font-size: clamp(1rem, 1.6vw, 1.25rem); color: var(--silver); }
 @media (max-width: 860px) { .brand-reveal { min-height: 76svh; padding-block: 70px; } .br-slot { height: clamp(180px, 30vh, 260px); } }
+
+/* tighter spacing between the hero and the 'Your brand' section */
+.js .hero-pin { padding-bottom: 64px; }
+.brand-reveal { min-height: 62vh; min-height: 62svh; padding-block: 24px 56px; }
+.br-slot { margin-bottom: 26px; }
+@media (max-width: 860px) { .brand-reveal { min-height: 56svh; padding-block: 16px 48px; } }
